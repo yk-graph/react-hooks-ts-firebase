@@ -22,5 +22,11 @@
   },
   "include": [
     "src"
-  ]
+  ],
+  "ts-node": {
+    "compilerOptions": {
+      "target": "es5",
+      "module": "CommonJS"
+    }
+  }
 }
