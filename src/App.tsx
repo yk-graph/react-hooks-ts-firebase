@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { db } from './firebase'
+import { db, auth } from './firebase'
 import TaskItem from './TaskItem'
 import { makeStyles } from '@material-ui/styles'
 import { FormControl, List, TextField } from '@material-ui/core'
-import { AddToPhotosOutlined } from '@material-ui/icons'
+import { AddToPhotosOutlined, ExitToApp } from '@material-ui/icons'
 import styles from './App.module.css'
 
 const useStyle = makeStyles({
@@ -17,10 +17,17 @@ const useStyle = makeStyles({
   },
 })
 
-const App: React.FC = () => {
+const App: React.FC = (props: any) => {
   const [tasks, setTasks] = useState([{ id: '', title: '' }])
   const [input, setInput] = useState('')
   const classes = useStyle()
+
+  useEffect(() => {
+    const unSub = auth.onAuthStateChanged((user) => {
+      !user && props.history.push('/login')
+    })
+    return () => unSub()
+  })
 
   useEffect(() => {
     const unSub = db
@@ -42,11 +49,25 @@ const App: React.FC = () => {
     <div className={styles.app__root}>
       <h1>Todo App by React/Firebase</h1>
 
+      <button
+        className={styles.app__logout}
+        onClick={async () => {
+          try {
+            await auth.signOut()
+            props.history.push('/login')
+          } catch (error: any) {
+            alert(error.message)
+          }
+        }}
+      >
+        <ExitToApp />
+      </button>
+      <br />
       <FormControl>
         <TextField
           className={classes.field}
           InputLabelProps={{ shrink: true }}
-          label="Nre task ?"
+          label="New task ?"
           value={input}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setInput(e.target.value)
