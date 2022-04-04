@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import './App.css'
 import { db } from './firebase'
-import { collection, onSnapshot, query } from 'firebase/firestore'
+import { addDoc, collection, onSnapshot, query } from 'firebase/firestore'
+import { FormControl, TextField } from '@material-ui/core'
+import { AddToPhotosOutlined } from '@material-ui/icons'
 
 const App: React.FC = () => {
   const [tasks, setTasks] = useState([{ id: '', title: '' }])
+  const [input, setInput] = useState('')
 
   // 初回のみ情報を取得したいので、第二引数は[]にしておく
   useEffect(() => {
@@ -31,8 +34,30 @@ const App: React.FC = () => {
     return () => unSub()
   }, [])
 
+  const addTask = async () => {
+    // firestoreにデータを追加したいときはaddDoc関数をimportして、第一引数には「どこに」を指定、第二引数には「何を」を指定する
+    await addDoc(collection(db, 'tasks'), { title: input })
+    setInput('')
+  }
+
   return (
     <div className="App">
+      <h1>Todo App by React/Firebase</h1>
+
+      <FormControl>
+        <TextField
+          InputLabelProps={{ shrink: true }}
+          label="New Task"
+          value={input}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setInput(e.target.value)
+          }
+        />
+      </FormControl>
+      <button disabled={!input} onClick={addTask}>
+        <AddToPhotosOutlined />
+      </button>
+
       {tasks.map((task) => (
         <h3 key={task.id}>{task.title}</h3>
       ))}
