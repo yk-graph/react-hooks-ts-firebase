@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import TaskItem from './TaskItem'
-import { db } from './firebase'
+import { db, auth } from './firebase'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { addDoc, collection, onSnapshot, query } from 'firebase/firestore'
+import { useNavigate } from 'react-router-dom'
 import { makeStyles } from '@material-ui/styles'
 import { FormControl, List, TextField } from '@material-ui/core'
-import { AddToPhotosOutlined } from '@material-ui/icons'
+import { AddToPhotosOutlined, ExitToAppOutlined } from '@material-ui/icons'
 import styles from './App.module.css'
 
 const useStyles = makeStyles({
@@ -22,6 +24,15 @@ const App: React.FC = () => {
   const [tasks, setTasks] = useState([{ id: '', title: '' }])
   const [input, setInput] = useState('')
   const classes = useStyles()
+
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const unSub = onAuthStateChanged(auth, (user) => {
+      !user && navigate('/login')
+    })
+    return () => unSub()
+  })
 
   // 初回のみ情報を取得したいので、第二引数は[]にしておく
   useEffect(() => {
@@ -58,6 +69,20 @@ const App: React.FC = () => {
     <div className={styles.app__root}>
       <h1>Todo App by React/Firebase</h1>
 
+      <button
+        className={styles.app__logout}
+        onClick={async () => {
+          try {
+            await signOut(auth)
+            navigate('/login')
+          } catch (error: any) {
+            alert(error.message)
+          }
+        }}
+      >
+        <ExitToAppOutlined />
+      </button>
+      <br />
       <FormControl>
         <TextField
           className={classes.field}
