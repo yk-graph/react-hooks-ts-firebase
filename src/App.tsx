@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import './App.css'
+import TaskItem from './TaskItem'
 import { db } from './firebase'
 import { addDoc, collection, onSnapshot, query } from 'firebase/firestore'
 import { FormControl, TextField } from '@material-ui/core'
 import { AddToPhotosOutlined } from '@material-ui/icons'
+import './App.css'
 
 const App: React.FC = () => {
   const [tasks, setTasks] = useState([{ id: '', title: '' }])
@@ -59,7 +60,7 @@ const App: React.FC = () => {
       </button>
 
       {tasks.map((task) => (
-        <h3 key={task.id}>{task.title}</h3>
+        <TaskItem key={task.id} id={task.id} title={task.title} />
       ))}
     </div>
   )
