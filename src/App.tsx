@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { db, auth } from './firebase'
 import TaskItem from './TaskItem'
+import { db } from './firebase'
+import { addDoc, collection, onSnapshot, query } from 'firebase/firestore'
 import { makeStyles } from '@material-ui/styles'
 import { FormControl, List, TextField } from '@material-ui/core'
-import { AddToPhotosOutlined, ExitToApp } from '@material-ui/icons'
+import { AddToPhotosOutlined } from '@material-ui/icons'
 import styles from './App.module.css'
 
-const useStyle = makeStyles({
+const useStyles = makeStyles({
   field: {
     marginTop: 30,
     marginBottom: 20,
@@ -17,31 +18,39 @@ const useStyle = makeStyles({
   },
 })
 
-const App: React.FC = (props: any) => {
+const App: React.FC = () => {
   const [tasks, setTasks] = useState([{ id: '', title: '' }])
   const [input, setInput] = useState('')
-  const classes = useStyle()
+  const classes = useStyles()
 
+  // 初回のみ情報を取得したいので、第二引数は[]にしておく
   useEffect(() => {
-    const unSub = auth.onAuthStateChanged((user) => {
-      !user && props.history.push('/login')
-    })
-    return () => unSub()
-  })
+    // 取得したいコレクションである'tasks'を指定して、コレクションのクエリを取得する
+    // query collection とかは、firebase/firestoreからimportする必要がある
+    const tasksCollection = query(collection(db, 'tasks'))
 
-  useEffect(() => {
-    const unSub = db
-      .collection('tasks')
-      .onSnapshot((snapshot) =>
-        setTasks(
-          snapshot.docs.map((doc) => ({ id: doc.id, title: doc.data().title }))
-        )
+    // unSubscribe(登録解除)として、firestoreからの返り値を受け取る変数を用意しておく
+    // onSnapshotもfirebase/firestoreからimportする必要がある
+    // onSnapshotは、firestoreからデータを取得してくための関数で、第一引数には取得したいコレクションのクエリを指定する
+    // onSnapshotを使うと、firestoreに何かしらの変更が起こった際に毎回情報を取得してきてくれる
+    const unSub = onSnapshot(tasksCollection, (querySnapshot) => {
+      // setTasks関数の中で取得してきた情報(querySnapshot)をループさせて情報を更新させる処理をする
+      setTasks(
+        querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          title: doc.data().title,
+        }))
       )
+    })
+    // このページから離脱する時やリロードされる時(このコンポーネントからunMountする時)にDOM情報を一度開放する必要がある
+    // 開放する時に開放する関数をクリーンナップ関数として指定する
+    // firestoreからの情報の取得を停止させるための関数がfirestoreのcollectionの帰り値(この場合、unSub)で渡ってきているので、それを指定する
     return () => unSub()
   }, [])
 
-  const newTask = () => {
-    db.collection('tasks').add({ title: input })
+  const addTask = async () => {
+    // firestoreにデータを追加したいときはaddDoc関数をimportして、第一引数には「どこに」を指定、第二引数には「何を」を指定する
+    await addDoc(collection(db, 'tasks'), { title: input })
     setInput('')
   }
 
@@ -49,32 +58,18 @@ const App: React.FC = (props: any) => {
     <div className={styles.app__root}>
       <h1>Todo App by React/Firebase</h1>
 
-      <button
-        className={styles.app__logout}
-        onClick={async () => {
-          try {
-            await auth.signOut()
-            props.history.push('/login')
-          } catch (error: any) {
-            alert(error.message)
-          }
-        }}
-      >
-        <ExitToApp />
-      </button>
-      <br />
       <FormControl>
         <TextField
           className={classes.field}
           InputLabelProps={{ shrink: true }}
-          label="New task ?"
+          label="New Task"
           value={input}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setInput(e.target.value)
           }
         />
       </FormControl>
-      <button className={styles.app__icon} disabled={!input} onClick={newTask}>
+      <button className={styles.app__icon} disabled={!input} onClick={addTask}>
         <AddToPhotosOutlined />
       </button>
 
