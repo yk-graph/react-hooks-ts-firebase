@@ -5,6 +5,7 @@ import { doc, setDoc, deleteDoc } from 'firebase/firestore'
 
 import { db } from './firebase'
 import { TaskType } from './types/Task'
+import styles from './TaskItem.module.css'
 
 interface Props {
   task: TaskType
@@ -28,15 +29,16 @@ const TaskItem: React.FC<Props> = ({ task }) => {
           InputLabelProps={{ shrink: true }}
           label="Edit Task"
           value={title}
+          variant="standard"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             setTitle(e.target.value)
           }
         />
       </Grid>
-      <button onClick={editTask}>
+      <button className={styles.taskitem__icon} onClick={editTask}>
         <EditOutlined />
       </button>
-      <button onClick={deleteTask}>
+      <button className={styles.taskitem__icon} onClick={deleteTask}>
         <DeleteOutline />
       </button>
     </ListItem>
