@@ -1,11 +1,13 @@
 import React, { memo, useState, useEffect } from 'react'
 import { addDoc, collection, query, onSnapshot } from 'firebase/firestore'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { FormControl, List, TextField } from '@mui/material'
-import { AddToPhotosOutlined } from '@mui/icons-material'
+import { AddToPhotosOutlined, ExitToAppOutlined } from '@mui/icons-material'
+import { useNavigate } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
 
 import TaskItem from './TaskItem'
-import { db } from './firebase'
+import { db, auth } from './firebase'
 import { TaskType } from './types/Task'
 import styles from './App.module.css'
 
@@ -19,8 +21,17 @@ const CustomList = styled(List)({
 })
 
 const App: React.FC = () => {
+  const navigate = useNavigate()
+
   const [tasks, setTasks] = useState<TaskType[]>([])
   const [input, setInput] = useState('')
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      !user && navigate('/login')
+    })
+    return () => unsubscribe()
+  }, [navigate])
 
   useEffect(() => {
     const q = query(collection(db, 'tasks'))
@@ -42,9 +53,21 @@ const App: React.FC = () => {
     setInput('')
   }
 
+  const logout = async () => {
+    try {
+      await signOut(auth)
+      navigate('/login')
+    } catch {
+      alert('ログアウトできませんでした')
+    }
+  }
+
   return (
     <div className={styles.app__root}>
       <h1>Todo App by React</h1>
+      <button className={styles.app__logout} onClick={logout}>
+        <ExitToAppOutlined />
+      </button>
       <br />
       <FormControl>
         <CustomField

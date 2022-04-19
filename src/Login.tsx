@@ -21,28 +21,24 @@ const Login: React.FC = () => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       user && navigate('/')
     })
-
     return () => unsubscribe()
   }, [navigate])
 
-  const handleAuth = () => {
-    isLogin
-      ? async () => {
-          try {
-            await signInWithEmailAndPassword(auth, email, password)
-            navigate('/')
-          } catch {
-            alert('ログインできませんでした')
-          }
-        }
-      : async () => {
-          try {
-            createUserWithEmailAndPassword(auth, email, password)
-            navigate('/')
-          } catch {
-            alert('会員登録できませんでした')
-          }
-        }
+  const handleLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
+      navigate('/')
+    } catch {
+      alert('ログインできませんでした')
+    }
+  }
+  const handleRegister = async () => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password)
+      navigate('/')
+    } catch {
+      alert('ログインできませんでした')
+    }
   }
 
   return (
@@ -84,7 +80,7 @@ const Login: React.FC = () => {
         variant="contained"
         color="primary"
         size="small"
-        onClick={handleAuth}
+        onClick={isLogin ? handleLogin : handleRegister}
       >
         {isLogin ? 'login' : 'register'}
       </Button>
