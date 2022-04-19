@@ -4,14 +4,11 @@ import { FormControl, TextField } from '@mui/material'
 import { AddToPhotosOutlined } from '@mui/icons-material'
 
 import { db } from './firebase'
-
-interface Task {
-  id: string
-  title: string
-}
+import TaskItem from './TaskItem'
+import { TaskType } from './types/Task'
 
 const App: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([])
+  const [tasks, setTasks] = useState<TaskType[]>([])
   const [input, setInput] = useState('')
 
   useEffect(() => {
@@ -51,7 +48,7 @@ const App: React.FC = () => {
         <AddToPhotosOutlined />
       </button>
       {tasks.map((task) => (
-        <p key={task.id}>{task.title}</p>
+        <TaskItem key={task.id} task={task} />
       ))}
     </div>
   )
